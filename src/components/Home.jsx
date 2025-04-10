@@ -6,7 +6,7 @@ const Home = () => {
         <div
             className="relative w-full h-screen flex flex-col items-center justify-center text-white bg-cover bg-center"
             style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1950&q=80')",
+            backgroundImage: "url('https://i.pinimg.com/736x/cf/4a/38/cf4a38c054dec32ebcf96adcd2b2f8d3.jpg')",
             }}
         >
             <div className="absolute inset-0 bg-blue-900 bg-opacity-70"></div>

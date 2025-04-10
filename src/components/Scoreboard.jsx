@@ -156,7 +156,7 @@ const Scoreboard = () => {
                 <li key={i} className="text-lg">
                   {batsman}: {batsmenScores[i]} runs{" "}
                   {currentBatsman === i && (
-                    <span className="font-bold text-yellow-300">(on strike)</span>
+                    <span className="font-bold text-yellow-300 animate-pulse">(on strike)</span>
                   )}
                 </li>
               ))}
