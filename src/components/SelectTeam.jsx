@@ -49,59 +49,60 @@ return `https://flagcdn.com/48x36/${country.slice(0, 2).toLowerCase()}.png`;
 };
 
 return (
-<div className="min-h-screen bg-gradient-to-tr from-sky-950 to-sky-900 text-white py-10 px-6">
+<div className="min-h-screen bg-gradient-to-br from-sky-950 to-sky-900 text-white px-4 py-10">
     <h1 className="text-4xl font-bold text-center mb-10">🏏 Select Teams</h1>
 
-    {/* Dropdowns */}
-    <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-8 mb-12">
-    <div>
+    {/* Dropdown Section */}
+    <div className="max-w-4xl mx-auto bg-sky-800/30 border border-sky-700 rounded-2xl p-6 mb-10 shadow-lg">
+    <h2 className="text-2xl font-semibold mb-6 text-center">Choose Teams</h2>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div>
         <label className="block mb-2 font-semibold text-gray-300">Team 1</label>
         <select
-        value={team1}
-        onChange={(e) => setTeam1(e.target.value)}
-        className="w-full p-3 rounded-xl bg-gray-800 text-white border border-gray-600 focus:outline-none"
+            value={team1}
+            onChange={(e) => setTeam1(e.target.value)}
+            className="w-full p-3 rounded-xl bg-gray-800 text-white border border-gray-600 focus:outline-none"
         >
-        <option value="">Select Team 1</option>
-        {Object.keys(savedTeams).map((team) => (
+            <option value="">Select Team 1</option>
+            {Object.keys(savedTeams).map((team) => (
             <option key={team} value={team} disabled={team === team2}>
-            {team}
+                {team}
             </option>
-        ))}
+            ))}
         </select>
-    </div>
-    <div>
+        </div>
+        <div>
         <label className="block mb-2 font-semibold text-gray-300">Team 2</label>
         <select
-        value={team2}
-        onChange={(e) => setTeam2(e.target.value)}
-        className="w-full p-3 rounded-xl bg-gray-800 text-white border border-gray-600 focus:outline-none"
+            value={team2}
+            onChange={(e) => setTeam2(e.target.value)}
+            className="w-full p-3 rounded-xl bg-gray-800 text-white border border-gray-600 focus:outline-none"
         >
-        <option value="">Select Team 2</option>
-        {Object.keys(savedTeams).map((team) => (
+            <option value="">Select Team 2</option>
+            {Object.keys(savedTeams).map((team) => (
             <option key={team} value={team} disabled={team === team1}>
-            {team}
+                {team}
             </option>
-        ))}
+            ))}
         </select>
+        </div>
     </div>
-    </div>
-
-    {/* Start Button */}
-    <div className="flex justify-center mb-12">
-    <button
+    <div className="text-center mt-8">
+        <button
         onClick={handleStartMatch}
-        className="bg-emerald-600 hover:bg-emerald-700 px-6 py-3 rounded-xl text-lg font-semibold shadow-md"
-    >
-        Start Match
-    </button>
+        className="bg-emerald-600 hover:bg-emerald-700 px-8 py-3 rounded-xl text-lg font-semibold shadow-md"
+        >
+        🚀 Start Match
+        </button>
+    </div>
     </div>
 
-    {/* Team Cards Grid - Two per row */}
+    {/* Team Cards */}
     <div className="grid sm:grid-cols-2 gap-6 max-w-5xl mx-auto">
     {Object.entries(savedTeams).map(([country, team]) => (
         <div
         key={country}
-        className="bg-sky-800 border border-sky-700 p-4 rounded-xl shadow-lg"
+        className="bg-sky-800 border border-sky-700 p-5 rounded-xl shadow-lg relative"
         >
         <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -131,7 +132,7 @@ return (
         {/* Modal Dialog */}
         {openDialog === country && (
             <div className="fixed inset-0 z-50 bg-black bg-opacity-80 flex items-center justify-center px-4">
-            <div className="bg-gray-900 text-white w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-xl shadow-xl p-6 relative border border-gray-700">
+            <div className="bg-gray-900 text-white w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-xl shadow-xl p-6 relative border border-gray-700">
                 <button
                 className="absolute top-3 right-4 text-white text-2xl font-bold"
                 onClick={() => setOpenDialog(null)}
@@ -148,16 +149,20 @@ return (
                     <h2 className="text-2xl font-bold">{country}</h2>
                 </div>
                 </div>
-                <p className="mb-1">
-                <strong>Best Score:</strong> {team.bestScore}
+                <div className="text-sm space-y-2">
+                <p>
+                    <strong>Best Score:</strong> {team.bestScore}
                 </p>
-                <p className="mb-3">
-                <strong>Last Match Score:</strong> {team.lastScore}
+                <p>
+                    <strong>Last Match Score:</strong> {team.lastScore}
                 </p>
+                </div>
 
                 {/* Players */}
-                <div className="mb-3">
-                <h4 className="text-lg font-semibold mb-2">Players:</h4>
+                <div className="mt-4">
+                <h4 className="text-lg font-semibold mb-2 border-b border-gray-600 pb-1">
+                    Players:
+                </h4>
                 <ul className="list-disc list-inside space-y-1">
                     {team.players?.map((player, i) => (
                     <li key={i}>{player}</li>
@@ -166,8 +171,10 @@ return (
                 </div>
 
                 {/* Bowlers */}
-                <div>
-                <h4 className="text-lg font-semibold mb-2">Bowlers:</h4>
+                <div className="mt-4">
+                <h4 className="text-lg font-semibold mb-2 border-b border-gray-600 pb-1">
+                    Bowlers:
+                </h4>
                 <ul className="list-disc list-inside space-y-1">
                     {team.bowlers?.map((bowler, i) => (
                     <li key={i}>{bowler}</li>
