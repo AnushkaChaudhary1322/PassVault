@@ -20,6 +20,9 @@ const Scoreboard = () => {
   const [nextPlayerIndex, setNextPlayerIndex] = useState(2);
   const [target, setTarget] = useState(null);
   const [gameOver, setGameOver] = useState(false);
+  const [currentBowler, setCurrentBowler] = useState("");
+  const [bowlers, setBowlers] = useState([]);
+  const [currentOver, setCurrentOver] = useState([]);
 
   useEffect(() => {
     const selected = localStorage.getItem("selected_match");
@@ -40,10 +43,19 @@ const Scoreboard = () => {
     setTeamB(B.players || []);
     setBattingOrder(A.players || []);
     setBatsmen([A.players[0], A.players[1]]);
+    setBowlers(B.bowlers || []);
+    setCurrentBowler(B.bowlers?.[0] || "");
   }, [navigate]);
 
   const addRuns = (runs, isExtra = false) => {
     if (gameOver) return;
+
+    const result = isExtra ? (runs === 1 ? "NB" : "W") : runs.toString();
+
+    setCurrentOver((prev) => {
+      if (prev.length < 6) return [...prev, result];
+      return [result];
+    });
 
     if (battingTeam === "A") {
       setTeamAScore((prev) => prev + runs);
@@ -71,6 +83,11 @@ const Scoreboard = () => {
   const handleOut = () => {
     if (gameOver) return;
 
+    setCurrentOver((prev) => {
+      if (prev.length < 6) return [...prev, "W"];
+      return ["W"];
+    });
+
     const updatedOutList =
       battingTeam === "A" ? [...outPlayersA] : [...outPlayersB];
     updatedOutList.push(batsmen[currentBatsman]);
@@ -93,7 +110,6 @@ const Scoreboard = () => {
       setNextPlayerIndex((prev) => prev + 1);
     } else {
       if (battingTeam === "A") {
-        // Switch innings
         setBattingTeam("B");
         setBattingOrder(teamB);
         setBatsmen([teamB[0], teamB[1]]);
@@ -101,6 +117,9 @@ const Scoreboard = () => {
         setCurrentBatsman(0);
         setNextPlayerIndex(2);
         setTarget(teamAScore + 1);
+        setBowlers(teamA.bowlers || []);
+        setCurrentBowler((teamA.bowlers || [])[0] || "");
+        setCurrentOver([]);
       } else {
         setGameOver(true);
         alert(`${teamAName} wins! 🎉`);
@@ -128,18 +147,42 @@ const Scoreboard = () => {
           </div>
         </div>
 
-        <div className="mt-8 bg-sky-800 p-4 rounded-2xl shadow-lg">
-          <h3 className="text-2xl font-semibold mb-4 text-white">Current Batsmen</h3>
-          <ul className="space-y-2">
-            {batsmen.map((batsman, i) => (
-              <li key={i} className="text-lg">
-                {batsman}: {batsmenScores[i]} runs{" "}
-                {currentBatsman === i && <span className="font-bold text-yellow-300">(on strike)</span>}
-              </li>
-            ))}
-          </ul>
+        {/* Current Batsmen and Bowler Over Info */}
+        <div className="mt-8 bg-sky-800 p-4 rounded-2xl shadow-lg flex flex-col md:flex-row justify-between gap-6">
+          <div className="flex-1">
+            <h3 className="text-2xl font-semibold mb-4 text-white">Current Batsmen</h3>
+            <ul className="space-y-2">
+              {batsmen.map((batsman, i) => (
+                <li key={i} className="text-lg">
+                  {batsman}: {batsmenScores[i]} runs{" "}
+                  {currentBatsman === i && (
+                    <span className="font-bold text-yellow-300">(on strike)</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="flex-1">
+            <h3 className="text-2xl font-semibold mb-4 text-white">Bowling</h3>
+            <p className="text-lg mb-2"> {currentBowler}</p>
+            <div className="flex gap-2 flex-wrap">
+              {[...Array(6)].map((_, i) => (
+                <div
+                  key={i}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${
+                    currentOver[i]
+                      ? "bg-yellow-300 text-black"
+                      : "bg-sky-700 border border-white text-white"
+                  }`}
+                >
+                  {currentOver[i] || ""}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
+        {/* Buttons */}
         <div className="mt-10 flex flex-wrap gap-3 justify-center">
           {[0, 1, 2, 3, 4, 6].map((run) => (
             <button
@@ -170,12 +213,55 @@ const Scoreboard = () => {
           </button>
         </div>
 
+        {/* Bowler Selection */}
+        <div className="mt-8 bg-sky-800 p-4 rounded-2xl shadow-lg">
+          <h3 className="text-2xl font-semibold mb-4 text-white">Select Bowler</h3>
+          <select
+            value={currentBowler}
+            onChange={(e) => setCurrentBowler(e.target.value)}
+            className="text-black px-4 py-2 rounded-xl shadow text-lg"
+          >
+            {bowlers.map((bowler, idx) => (
+              <option key={idx} value={bowler}>
+                {bowler}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Remaining Batting Lineup */}
+        <div className="mt-8 bg-sky-800 p-4 rounded-2xl shadow-lg">
+          <h3 className="text-2xl font-semibold mb-4 text-white">
+            Remaining Batting Lineup
+          </h3>
+          <ul className="flex flex-wrap gap-3">
+            {battingOrder
+              .filter(
+                (player) =>
+                  !batsmen.includes(player) &&
+                  !((battingTeam === "A" ? outPlayersA : outPlayersB).includes(
+                    player
+                  ))
+              )
+              .map((player, idx) => (
+                <li
+                  key={idx}
+                  className="bg-sky-700 px-4 py-2 rounded-xl shadow text-white text-sm"
+                >
+                  {player}
+                </li>
+              ))}
+          </ul>
+        </div>
+
+        {/* Target Info */}
         {target && battingTeam === "B" && !gameOver && (
           <p className="mt-6 text-center text-yellow-300 text-lg">
-            🎯 Target: {target} | Runs Remaining: {target - teamBScore}
+            Target: {target} | Runs Remaining: {target - teamBScore}
           </p>
         )}
 
+        {/* Game Over */}
         {gameOver && (
           <div className="mt-8 text-center text-3xl text-lime-400 font-bold">
             Game Over 🎉
