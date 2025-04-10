@@ -1,86 +1,40 @@
-import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-import CredentialForm from "./components/CredentialForm";
-import CredentialList from "./components/CredentialList";
-import SearchBar from "./components/SearchBar";
-import PasswordGenerator from "./components/PasswordGenerator";
+import { useState, useEffect } from 'react';
+import Navbar from './components/Navbar';
+import CredentialForm from './components/CredentialForm';
+import CredentialList from './components/CredentialList';
+import './App.css'; 
 
-const App = () => {
-  const [credentials, setCredentials] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [editingCredential, setEditingCredential] = useState(null);
+function App() {
+  const [credentials, setCredentials] = useState(() => {
+    return JSON.parse(localStorage.getItem('credentials')) || [];
+  });
 
-  // Load from localStorage on mount
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("credentials")) || [];
-    setCredentials(saved);
-  }, []);
-
-  // Save to localStorage on change
-  useEffect(() => {
-    localStorage.setItem("credentials", JSON.stringify(credentials));
+    localStorage.setItem('credentials', JSON.stringify(credentials));
   }, [credentials]);
 
-  const handleSave = (newCredential) => {
-    if (editingCredential) {
-      setCredentials((prev) =>
-        prev.map((cred) =>
-          cred.id === newCredential.id ? newCredential : cred
-        )
-      );
-      setEditingCredential(null);
-    } else {
-      setCredentials((prev) => [...prev, newCredential]);
-    }
+  const addCredential = (cred) => {
+    setCredentials(prev => [...prev, cred]);
   };
-
-  const handleDelete = (id) => {
-    setCredentials((prev) => prev.filter((cred) => cred.id !== id));
-  };
-
-  const handleEdit = (credential) => {
-    setEditingCredential(credential);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const filteredCredentials = credentials.filter((cred) =>
-    cred.website.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   return (
-    <Router>
-      <div className="min-h-screen flex flex-col bg-gray-50">
-        <Navbar />
-        <main className="flex-grow px-4 py-6">
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <>
-                <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
-                  <CredentialForm
-                    onSave={handleSave}
-                    editingCredential={editingCredential}
-                    onCancel={() => setEditingCredential(null)}
-                  />
-                  
-                  <CredentialList
-                    credentials={filteredCredentials}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                  />
-                </>
-              }
-            />
-            <Route path="/generator" element={<PasswordGenerator />} />
-          </Routes>
+    <div className="min-h-screen animated-gradient text-gray-900">
+      <Navbar />
+
+      {/* Main Layout */}
+      <div className="flex justify-between"> 
+        {/* Left Panel - Credential Form (Fixed Width) */}
+        <aside className="w-full md:w-[200px] lg:w-1/3 h-screen fixed top-20 left-0 px-4 overflow-y-auto ">
+          <CredentialForm addCredential={addCredential} />
+        </aside>
+
+        {/* Right Panel - Credential List */}
+        <main className="ml-0 md:ml-[35%] lg:ml-[38%] w-[80%] px-10">
+          <CredentialList credentials={credentials} setCredentials={setCredentials} />
         </main>
-        <Footer />
       </div>
-    </Router>
+    </div>
   );
-};
+}
 
 export default App;

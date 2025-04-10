@@ -1,29 +1,16 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
 
 const Navbar = () => {
-const location = useLocation();
-
-const linkClasses = (path) =>
-`text-white hover:text-yellow-300 transition ${
-    location.pathname === path ? "font-bold underline" : ""
-}`;
-
-return (
-<nav className="bg-indigo-600 p-4 shadow-lg">
-    <div className="container mx-auto flex justify-between items-center">
-    <h1 className="text-white text-2xl font-bold">🔐 PassVault</h1>
-    <div className="space-x-6">
-        <Link to="/" className={linkClasses("/")}>
-        Home
-        </Link>
-        <Link to="/generator" className={linkClasses("/generator")}>
-        Password Generator
-        </Link>
-    </div>
-    </div>
-</nav>
-);
+  return (
+    <nav className="w-full bg-gradient-to-r from-accent via-primary-light to-soft-blue text-text-dark shadow-md">
+      <div className="max-w-6xl mx-auto flex justify-between items-center py-4 px-6">
+        <h1 className="text-3xl font-bold tracking-wide flex items-center gap-2 text-primary drop-shadow-sm">
+          <span role="img" aria-label="lock">🔐</span>
+          PassVault
+        </h1>
+      </div>
+    </nav>
+  );
 };
 
 export default Navbar;
