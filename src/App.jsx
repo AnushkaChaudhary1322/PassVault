@@ -22,9 +22,9 @@ function App() {
       <Navbar />
 
       {/* Main Layout */}
-      <div className="flex justify-between"> 
+      <div className="flex py-20"> 
         {/* Left Panel - Credential Form (Fixed Width) */}
-        <aside className="w-full md:w-[200px] lg:w-1/3 h-screen fixed top-20 left-0 px-4 overflow-y-auto ">
+        <aside className="w-full md:w-[200px] lg:w-1/3 h-screen fixed top-20 left-10 px-4 overflow-y-auto ">
           <CredentialForm addCredential={addCredential} />
         </aside>
 
