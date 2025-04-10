@@ -22,6 +22,9 @@ const Navbar = () => {
             <Link to="/team" className="text-white hover:text-yellow-300 transition">
                 Add Players
             </Link>
+            <Link to="/select-team" className="text-white hover:text-yellow-300 transition">
+                Select Team
+            </Link>
             <Link to="/score" className="text-white hover:text-yellow-300 transition">
                 Score Board
             </Link>

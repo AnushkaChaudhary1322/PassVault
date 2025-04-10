@@ -8,6 +8,7 @@ import Contact from "./components/Contact";
 import Footer from "../src/components/Footer";
 import Scoreboard from "./components/Scoreboard";
 import AddTeam from "./components/AddTeam";
+import SelectTeam from "./components/SelectTeam";
 
 const App = () => {
   return (
@@ -19,6 +20,7 @@ const App = () => {
         <Route path="/services" element={<Services />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/team" element={<AddTeam />} />
+        <Route path="/select-team" element={<SelectTeam />} />
         <Route path="/score" element={<Scoreboard />} />
       </Routes>
       <Footer/>

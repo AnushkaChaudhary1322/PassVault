@@ -1,27 +1,18 @@
 import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Scoreboard = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-  const teams = location.state?.teams;
 
-  useEffect(() => {
-    if (!teams) {
-      navigate("/score"); 
-    }
-  }, [teams, navigate]);
-
-  const teamA = teams?.A.players || [];
-  const teamB = teams?.B.players || [];
-  const teamAName = teams?.A.name || "Team A";
-  const teamBName = teams?.B.name || "Team B";
-
+  const [teamA, setTeamA] = useState([]);
+  const [teamB, setTeamB] = useState([]);
+  const [teamAName, setTeamAName] = useState("Team A");
+  const [teamBName, setTeamBName] = useState("Team B");
   const [teamAScore, setTeamAScore] = useState(0);
   const [teamBScore, setTeamBScore] = useState(0);
   const [battingTeam, setBattingTeam] = useState("A");
-  const [battingOrder, setBattingOrder] = useState([...teamA]);
-  const [batsmen, setBatsmen] = useState([battingOrder[0], battingOrder[1]]);
+  const [battingOrder, setBattingOrder] = useState([]);
+  const [batsmen, setBatsmen] = useState([]);
   const [batsmenScores, setBatsmenScores] = useState([0, 0]);
   const [outPlayersA, setOutPlayersA] = useState([]);
   const [outPlayersB, setOutPlayersB] = useState([]);
@@ -30,7 +21,28 @@ const Scoreboard = () => {
   const [target, setTarget] = useState(null);
   const [gameOver, setGameOver] = useState(false);
 
-  const addRuns = (runs) => {
+  useEffect(() => {
+    const selected = localStorage.getItem("selected_match");
+    if (!selected) {
+      navigate("/select");
+      return;
+    }
+
+    const { A, B } = JSON.parse(selected);
+    if (!A || !B) {
+      navigate("/select");
+      return;
+    }
+
+    setTeamAName(A.name);
+    setTeamBName(B.name);
+    setTeamA(A.players || []);
+    setTeamB(B.players || []);
+    setBattingOrder(A.players || []);
+    setBatsmen([A.players[0], A.players[1]]);
+  }, [navigate]);
+
+  const addRuns = (runs, isExtra = false) => {
     if (gameOver) return;
 
     if (battingTeam === "A") {
@@ -38,155 +50,137 @@ const Scoreboard = () => {
     } else {
       const newScore = teamBScore + runs;
       setTeamBScore(newScore);
-      if (newScore >= target) {
+      if (!isExtra && target && newScore >= target) {
         setGameOver(true);
         alert(`${teamBName} wins! 🎉`);
         return;
       }
     }
 
-    const updatedScores = [...batsmenScores];
-    updatedScores[currentBatsman] += runs;
-    setBatsmenScores(updatedScores);
+    if (!isExtra) {
+      const updatedScores = [...batsmenScores];
+      updatedScores[currentBatsman] += runs;
+      setBatsmenScores(updatedScores);
 
-    if (runs % 2 !== 0) {
-      setCurrentBatsman((prev) => (prev === 0 ? 1 : 0));
+      if (runs % 2 !== 0) {
+        setCurrentBatsman((prev) => 1 - prev);
+      }
     }
   };
 
   const handleOut = () => {
     if (gameOver) return;
 
-    if (nextPlayerIndex >= battingOrder.length) {
-      if (battingTeam === "A") {
-        alert(`All out! ${teamBName} needs ${teamAScore + 1} to win.`);
-        setTarget(teamAScore + 1);
-        switchInnings();
-      } else {
-        alert(`All out! ${teamAName} wins! 🎉`);
-        setGameOver(true);
-      }
-      return;
-    }
+    const updatedOutList =
+      battingTeam === "A" ? [...outPlayersA] : [...outPlayersB];
+    updatedOutList.push(batsmen[currentBatsman]);
 
-    const outBatsman = batsmen[currentBatsman];
     if (battingTeam === "A") {
-      setOutPlayersA([...outPlayersA, outBatsman]);
+      setOutPlayersA(updatedOutList);
     } else {
-      setOutPlayersB([...outPlayersB, outBatsman]);
+      setOutPlayersB(updatedOutList);
     }
 
-    const newBatsman = battingOrder[nextPlayerIndex];
-    setNextPlayerIndex((prev) => prev + 1);
-
-    setBatsmen((prev) =>
-      currentBatsman === 0 ? [newBatsman, prev[1]] : [prev[0], newBatsman]
-    );
-    setBatsmenScores((prev) =>
-      currentBatsman === 0 ? [0, prev[1]] : [prev[0], 0]
-    );
-    setCurrentBatsman(1);
-  };
-
-  const switchInnings = () => {
-    setBattingTeam("B");
-    setBattingOrder([...teamB]);
-    setBatsmen([teamB[0], teamB[1]]);
-    setBatsmenScores([0, 0]);
-    setNextPlayerIndex(2);
-  };
-
-  const handleWideBall = () => {
-    addRuns(1);
-    setCurrentBatsman((prev) => (prev === 0 ? 1 : 0));
-  };
-
-  const handleNoBall = () => {
-    addRuns(1);
-    setCurrentBatsman((prev) => (prev === 0 ? 1 : 0));
+    if (nextPlayerIndex < battingOrder.length) {
+      const newBatsmen = [...batsmen];
+      newBatsmen[currentBatsman] = battingOrder[nextPlayerIndex];
+      setBatsmen(newBatsmen);
+      setBatsmenScores((prevScores) => {
+        const newScores = [...prevScores];
+        newScores[currentBatsman] = 0;
+        return newScores;
+      });
+      setNextPlayerIndex((prev) => prev + 1);
+    } else {
+      if (battingTeam === "A") {
+        // Switch innings
+        setBattingTeam("B");
+        setBattingOrder(teamB);
+        setBatsmen([teamB[0], teamB[1]]);
+        setBatsmenScores([0, 0]);
+        setCurrentBatsman(0);
+        setNextPlayerIndex(2);
+        setTarget(teamAScore + 1);
+      } else {
+        setGameOver(true);
+        alert(`${teamAName} wins! 🎉`);
+      }
+    }
   };
 
   return (
-    <div className="w-full flex flex-col justify-center items-center bg-gradient-to-br from-gray-900 to-gray-800 text-white p-6">
-      <h1 className="text-4xl font-bold mb-6">🏏 Cricket Scoreboard</h1>
+    <div className="min-h-screen bg-gradient-to-tr from-sky-950 to-sky-900 text-white p-6">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-4xl font-extrabold text-center mb-8 text-white">
+          🏏 Scoreboard
+        </h1>
 
-      {gameOver ? (
-        <h2 className="text-3xl font-bold text-yellow-400 mb-6">Game Over!</h2>
-      ) : (
-        <h2 className="text-3xl font-bold mb-6">
-          {battingTeam === "A" ? `${teamAName} Batting` : `${teamBName} Batting`}
-        </h2>
-      )}
-
-      <div className="flex w-full max-w-screen-xl justify-between">
-        {/* Team A */}
-        <div className="bg-gray-700 p-6 rounded-xl shadow-lg w-1/3">
-          <h2 className="text-2xl font-semibold text-center mb-3">{teamAName}</h2>
-          {teamA.map((player, index) => (
-            <p key={index} className={`py-1 text-lg ${
-              outPlayersA.includes(player) ? "text-red-500 line-through" : 
-              batsmen.includes(player) && battingTeam === "A" ? "text-green-400 font-bold" : "text-white"
-            }`}>
-              {player} {batsmen.includes(player) && battingTeam === "A" && "🟢"}
-            </p>
-          ))}
-          <p className="mt-3 text-lg text-center font-bold">Score: {teamAScore}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-sky-800 rounded-2xl p-4 shadow-lg">
+          <div className="p-4 rounded-xl bg-sky-700 shadow-md">
+            <h2 className="text-2xl font-bold mb-2">{teamAName}</h2>
+            <p className="text-lg">Score: {teamAScore}</p>
+            <p className="text-lg">Out: {outPlayersA.length}</p>
+          </div>
+          <div className="p-4 rounded-xl bg-sky-700 shadow-md">
+            <h2 className="text-2xl font-bold mb-2">{teamBName}</h2>
+            <p className="text-lg">Score: {teamBScore}</p>
+            <p className="text-lg">Out: {outPlayersB.length}</p>
+          </div>
         </div>
 
-        {/* Center Score Section */}
-        <div className="bg-gray-900 p-6 rounded-xl shadow-lg flex flex-col items-center w-1/3">
-          <h2 className="text-3xl font-bold mb-3">
-            {battingTeam === "A" ? `${teamAName} Score: ${teamAScore}` : `${teamBName} Score: ${teamBScore}`}
-          </h2>
-
-          {target && battingTeam === "B" && (
-            <p className="text-xl font-bold text-yellow-400 mb-3">Target: {target}</p>
-          )}
-
-          <div className="text-lg mb-3">
-            <p className="text-green-400 font-bold">
-              {batsmen[0]} - {batsmenScores[0]} runs {currentBatsman === 0 && "🟢"}
-            </p>
-            <p className="text-green-400 font-bold">
-              {batsmen[1]} - {batsmenScores[1]} runs {currentBatsman === 1 && "🟢"}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3 mb-4">
-            {[1, 2, 3, 4, 6].map((run) => (
-              <button key={run} onClick={() => addRuns(run)} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">
-                {run} Run{run > 1 ? "s" : ""}
-              </button>
+        <div className="mt-8 bg-sky-800 p-4 rounded-2xl shadow-lg">
+          <h3 className="text-2xl font-semibold mb-4 text-white">Current Batsmen</h3>
+          <ul className="space-y-2">
+            {batsmen.map((batsman, i) => (
+              <li key={i} className="text-lg">
+                {batsman}: {batsmenScores[i]} runs{" "}
+                {currentBatsman === i && <span className="font-bold text-yellow-300">(on strike)</span>}
+              </li>
             ))}
-          </div>
+          </ul>
+        </div>
 
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            <button onClick={handleWideBall} className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg">
-              Wide Ball (1)
+        <div className="mt-10 flex flex-wrap gap-3 justify-center">
+          {[0, 1, 2, 3, 4, 6].map((run) => (
+            <button
+              key={run}
+              onClick={() => addRuns(run)}
+              className="bg-emerald-600 hover:bg-emerald-700 px-5 py-2 rounded-xl text-lg font-medium shadow"
+            >
+              +{run}
             </button>
-            <button onClick={handleNoBall} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg">
-              No Ball (1)
-            </button>
-          </div>
-
-          <button onClick={handleOut} className="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">
-            Out
+          ))}
+          <button
+            onClick={handleOut}
+            className="bg-rose-600 hover:bg-rose-700 px-5 py-2 rounded-xl text-lg font-medium shadow"
+          >
+            OUT
+          </button>
+          <button
+            onClick={() => addRuns(1, true)}
+            className="bg-indigo-600 hover:bg-indigo-700 px-5 py-2 rounded-xl text-lg font-medium shadow"
+          >
+            No Ball +1
+          </button>
+          <button
+            onClick={() => addRuns(1, true)}
+            className="bg-cyan-600 hover:bg-cyan-700 px-5 py-2 rounded-xl text-lg font-medium shadow"
+          >
+            Wide Ball +1
           </button>
         </div>
 
-        {/* Team B */}
-        <div className="bg-gray-700 p-6 rounded-xl shadow-lg w-1/3">
-          <h2 className="text-2xl font-semibold text-center mb-3">{teamBName}</h2>
-          {teamB.map((player, index) => (
-            <p key={index} className={`py-1 text-lg ${
-              outPlayersB.includes(player) ? "text-red-500 line-through" : 
-              batsmen.includes(player) && battingTeam === "B" ? "text-green-400 font-bold" : "text-white"
-            }`}>
-              {player} {batsmen.includes(player) && battingTeam === "B" && "🟢"}
-            </p>
-          ))}
-          <p className="mt-3 text-lg text-center font-bold">Score: {teamBScore}</p>
-        </div>
+        {target && battingTeam === "B" && !gameOver && (
+          <p className="mt-6 text-center text-yellow-300 text-lg">
+            🎯 Target: {target} | Runs Remaining: {target - teamBScore}
+          </p>
+        )}
+
+        {gameOver && (
+          <div className="mt-8 text-center text-3xl text-lime-400 font-bold">
+            Game Over 🎉
+          </div>
+        )}
       </div>
     </div>
   );
