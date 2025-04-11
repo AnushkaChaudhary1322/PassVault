@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import Navbar from './components/Navbar';
+import Navbar from './components/NavBar';
 import CredentialForm from './components/CredentialForm';
 import CredentialList from './components/CredentialList';
 import './App.css'; 
