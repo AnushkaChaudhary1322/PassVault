@@ -6,7 +6,7 @@
 
 ## Screen Shot
 
-<!-- ![QuickScore Screenshot](https://crick-buzz-zeta.vercel.app/home.png) -->
+![PassVault Screenshot](https://pass-vault-brown.vercel.app/home.png)
 
 ---
 
@@ -14,11 +14,11 @@
 
 Check out the live deployed app here:
 
-<!-- 🔗 [crick-buzz-zeta.vercel.app](https://crick-buzz-zeta.vercel.app) -->
+🔗 [pass-vault-brown.vercel.app](https://pass-vault-brown.vercel.app)
 
 Alternate deployment:
 
-<!-- 🔗 [crick-buzz-ghqmsb85r-anushkas-projects-8daad610.vercel.app](https://crick-buzz-ghqmsb85r-anushkas-projects-8daad610.vercel.app) -->
+🔗 [pass-vault-e6znv73a9-anushkas-projects-8daad610.vercel.app](https://pass-vault-e6znv73a9-anushkas-projects-8daad610.vercel.app)
 
 ---
 
